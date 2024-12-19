@@ -4,8 +4,7 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"prepare": "husky"
+		"build:dev": "rm -rf dist && rollup --bundleConfigAsCjs --config scripts/rollup/react.config.js "
 	},
 	"keywords": [],
 	"author": "",
@@ -13,6 +12,7 @@
 	"devDependencies": {
 		"@commitlint/cli": "^19.6.1",
 		"@commitlint/config-conventional": "^19.6.0",
+		"@rollup/plugin-commonjs": "^28.0.2",
 		"@typescript-eslint/parser": "^8.18.1",
 		"commitlint": "^19.6.1",
 		"eslint": "^9.17.0",
@@ -21,6 +21,8 @@
 		"eslint-plugin-prettier": "^5.2.1",
 		"husky": "^9.1.7",
 		"rollup": "^4.28.1",
+		"rollup-plugin-generate-package-json": "^3.2.0",
+		"rollup-plugin-typescript2": "^0.36.0",
 		"typescript": "^5.7.2"
 	}
 }
