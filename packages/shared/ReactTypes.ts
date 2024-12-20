@@ -12,3 +12,7 @@ export interface ReactElementType {
 	type: ElementType;
 	_mark: string;
 }
+
+export type State = any;
+
+export type Action<State> = State | ((preState: State) => State);
