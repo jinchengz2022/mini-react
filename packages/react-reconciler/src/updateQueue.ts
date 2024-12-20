@@ -4,6 +4,9 @@ import { Action, State } from 'shared/ReactTypes';
 // setName('li')
 // setName((pre) => pre + 'haha')
 
+// reactDOM.createRoot(rootElement).render(<App/>)
+// fiberRootNode ⇆⇆⇆ hostRoot ⇆⇆⇆ app
+
 export interface Update<State> {
 	action: Action<State>;
 }
@@ -28,7 +31,7 @@ export const enqueueUpdate = <Action>(
 };
 
 export const processUpdateQueue = <State>(
-	baseState: State,
+	baseState: State, // 初始 state
 	pendingUpdate: Update<State> | null
 ): { memorizedState: State } => {
 	const result = { memorizedState: baseState };

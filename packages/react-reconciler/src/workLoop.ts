@@ -1,6 +1,7 @@
 import { beginWork } from './beginWork';
 import { completeWork } from './completeWork';
-import { FiberNode } from './fiber';
+import { FiberNode, FiberRootNode, createWorkInProgressFiber } from './fiber';
+import { HostRoot } from './workTags';
 
 // dfs 遍历结构树
 // 如果有子节点遍历子节点
@@ -9,11 +10,31 @@ import { FiberNode } from './fiber';
 let workInProgress: FiberNode | null = null;
 
 // 初始化
-function prepareFreshStack(fiber: FiberNode) {
-	workInProgress = fiber;
+function prepareFreshStack(root: FiberRootNode) {
+	workInProgress = createWorkInProgressFiber(root.current, {});
 }
 
-function renderNode(root: FiberNode) {
+export function scheduleUpdateOnFinber(fiber: FiberNode) {
+	const root = markUpdateFromFiberToRoot(fiber);
+	renderNode(root);
+}
+
+function markUpdateFromFiberToRoot(fiber: FiberNode) {
+	let node = fiber;
+	let parent = node.return;
+
+	if (parent !== null) {
+		node = parent;
+		parent = node.return;
+	}
+
+	if (node.tag === HostRoot) {
+		return node.stateNode;
+	}
+	return null;
+}
+
+function renderNode(root: FiberRootNode) {
 	prepareFreshStack(root);
 
 	do {
