@@ -24,7 +24,7 @@ export default [
 				inputFolder: pkgPath,
 				outputFolder: pkgDistPath,
 				// react pkg.json 中包含 shared 我们不需要，这自定义下
-				baseContents: (name, version, description) => ({
+				baseContents: ({ name, version, description }) => ({
 					name,
 					version,
 					description,
