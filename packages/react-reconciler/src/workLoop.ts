@@ -1,4 +1,5 @@
 import { beginWork } from './beginWork';
+import { commitMutationEffects } from './commitWork';
 import { completeWork } from './completeWork';
 import { FiberNode, FiberRootNode, createWorkInProgressFiber } from './fiber';
 import { MutationMask, NoFlags } from './fiberFlags';
@@ -85,6 +86,7 @@ function commitRoot(root: FiberRootNode) {
 		// beforemutation
 
 		// mutation
+		commitMutationEffects(finishedWork);
 		root.current = finishedWork;
 
 		// layout
