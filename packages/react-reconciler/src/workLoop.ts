@@ -1,6 +1,7 @@
 import { beginWork } from './beginWork';
 import { completeWork } from './completeWork';
 import { FiberNode, FiberRootNode, createWorkInProgressFiber } from './fiber';
+import { MutationMask, NoFlags } from './fiberFlags';
 import { HostRoot } from './workTags';
 
 // dfs 遍历结构树
@@ -34,6 +35,9 @@ function markUpdateFromFiberToRoot(fiber: FiberNode) {
 	return null;
 }
 
+// 1. schedule
+// 2. render(beginwork、compeletework)
+// 3. commit
 function renderNode(root: FiberRootNode) {
 	prepareFreshStack(root);
 
@@ -55,7 +59,39 @@ function renderNode(root: FiberRootNode) {
 	commitRoot(root);
 }
 
-function commitRoot(root: FiberRootNode) {}
+// 1. beforeMutation
+// 2. mutation
+// 3. layout
+function commitRoot(root: FiberRootNode) {
+	const finishedWork = root.finishedWork;
+
+	if (finishedWork === null) {
+		return;
+	}
+
+	if (__DEV__) {
+		console.error('commit start');
+	}
+
+	// reset
+	root.finishedWork = null;
+
+	const subtreeHasEffect =
+		(finishedWork.subtreeFlags & MutationMask) !== NoFlags;
+
+	const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
+
+	if (subtreeHasEffect || rootHasEffect) {
+		// beforemutation
+
+		// mutation
+		root.current = finishedWork;
+
+		// layout
+	} else {
+		root.current = finishedWork;
+	}
+}
 
 function workLoop() {
 	while (workInProgress !== null) {
