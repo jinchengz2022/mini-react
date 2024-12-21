@@ -19,13 +19,13 @@ export interface UpdateQueue<State> {
 
 export const createUpdate = <State>(action: Action<State>) => ({ action });
 
-export const createUpdateQueue = <Action>() => ({
+export const createUpdateQueue = <State>() => ({
 	shared: { pending: null }
 });
 
-export const enqueueUpdate = <Action>(
-	updateQueue: UpdateQueue<Action>,
-	update: Update<Action>
+export const enqueueUpdate = <State>(
+	updateQueue: UpdateQueue<State>,
+	update: Update<State>
 ) => {
 	updateQueue.shared.pending = update;
 };
