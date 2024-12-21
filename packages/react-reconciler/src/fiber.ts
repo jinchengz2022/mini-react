@@ -29,6 +29,7 @@ export class FiberNode {
 
 	alternate: FiberNode | null;
 	flags: Flags;
+	subtreeFlags: Flags;
 
 	constructor(tag: WorkTag, pendingProps: Props, key: Key) {
 		// 实例
@@ -58,6 +59,7 @@ export class FiberNode {
 		this.alternate = null;
 		// 副作用
 		this.flags = NoFlags;
+		this.subtreeFlags = NoFlags;
 	}
 }
 
@@ -93,6 +95,7 @@ export function createWorkInProgressFiber(
 		// update
 		wip.pendingProps = pendingProps;
 		wip.flags = NoFlags;
+		wip.subtreeFlags = NoFlags;
 	}
 
 	wip.type = current.type;
@@ -109,14 +112,15 @@ export function createFiberFromElement(element: ReactElementType) {
 
 	let fiberTag: WorkTag = FunctionComponent;
 
-	// <div/>
+	// <div/> type: 'div'
 	if (typeof type === 'string') {
 		fiberTag = HostComponent;
 	} else if (typeof type !== 'function' && __DEV__) {
 		console.error('fiber 节点类型');
 	}
 
-	const fiber = new FiberNode(fiberTag, {}, key);
+	const fiber = new FiberNode(fiberTag, props, key);
+	fiber.type = type;
 
 	return fiber;
 }
