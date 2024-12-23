@@ -30,7 +30,7 @@ const ReactElement = function (
 // _jsx("div", { children: "123" });
 // React.createElement("div", null, "123");
 
-export const jsx = (type: ElementType, config: any, ...args: any) => {
+const jsx = (type: ElementType, config: any, ...args: any) => {
 	let key: Key = null;
 	let ref: Ref = null;
 	const props: Props = {};
