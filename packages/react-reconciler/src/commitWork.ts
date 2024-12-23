@@ -44,12 +44,14 @@ const commitMutationEffectsOnFiber = (finishedWork: FiberNode) => {
 };
 
 const commitPlacement = (finishedWork: FiberNode) => {
-	if (__DEV__) {
-		console.error('perform commitPlacement');
-	}
+	// if (__DEV__) {
+	console.warn('perform commitPlacement');
+	// }
 	const hostParent = getHostParent(finishedWork);
 
-	appendPlacementNodeIntoContainer(finishedWork, hostParent);
+	if (hostParent !== null) {
+		appendPlacementNodeIntoContainer(finishedWork, hostParent);
+	}
 };
 
 function getHostParent(fiber: FiberNode) {
@@ -68,6 +70,8 @@ function getHostParent(fiber: FiberNode) {
 
 		parent = parent.return;
 	}
+
+	return null;
 }
 
 function appendPlacementNodeIntoContainer(
@@ -75,7 +79,7 @@ function appendPlacementNodeIntoContainer(
 	hostParent: Container
 ) {
 	if (finishedWork.tag === HostComponent || finishedWork.tag === HostText) {
-		appendChildToContainer(finishedWork.stateNode, hostParent);
+		appendChildToContainer(hostParent, finishedWork.stateNode);
 		return;
 	}
 

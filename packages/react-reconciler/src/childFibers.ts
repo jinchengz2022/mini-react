@@ -44,8 +44,9 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		if (typeof newChild === 'object' && newChild !== null) {
 			switch (newChild.$$typeof) {
 				case REACT_ELEMENT_TYPE:
-					return reconcileSingleElement(returnFiber, currentFiber, newChild);
-
+					return placeSingleChild(
+						reconcileSingleElement(returnFiber, currentFiber, newChild)
+					);
 				default:
 					break;
 			}
@@ -56,10 +57,10 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 			);
 		}
 
-		if (__DEV__) {
-			console.error('reconcileChildFiber 为实现类型');
-			return null;
-		}
+		// if (__DEV__) {
+		console.warn('reconcileChildFiber 为实现类型');
+		// return null;
+		// }
 		return null;
 	};
 }

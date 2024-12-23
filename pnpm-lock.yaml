@@ -17,6 +17,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^19.6.0
         version: 19.6.0
+      '@rollup/plugin-alias':
+        specifier: ^5.1.1
+        version: 5.1.1(rollup@4.28.1)
       '@rollup/plugin-commonjs':
         specifier: ^28.0.2
         version: 28.0.2(rollup@4.28.1)
@@ -56,6 +59,18 @@ importers:
 
   packages/react:
     dependencies:
+      shared:
+        specifier: workspace:*
+        version: link:../shared
+
+  packages/react-dom:
+    dependencies:
+      react:
+        specifier: workspace:*
+        version: link:../react
+      react-reconciler:
+        specifier: workspace:*
+        version: link:../react-reconciler
       shared:
         specifier: workspace:*
         version: link:../shared
@@ -329,6 +344,18 @@ packages:
         integrity: sha512-cq8o4cWH0ibXh9VGi5P20Tu9XF/0fFXl9EUinr9QfTM7a7p0oTA4iJRCQWppXR1Pg8dSM0UCItCkPwsk9qWWYA==
       }
     engines: { node: ^12.20.0 || ^14.18.0 || >=16.0.0 }
+
+  '@rollup/plugin-alias@5.1.1':
+    resolution:
+      {
+        integrity: sha512-PR9zDb+rOzkRb2VD+EuKB7UC41vU5DIwZ5qqCpk0KJudcWAyi8rvYOhS7+L5aZCspw1stTViLgN5v6FF1p5cgQ==
+      }
+    engines: { node: '>=14.0.0' }
+    peerDependencies:
+      rollup: ^1.20.0||^2.0.0||^3.0.0||^4.0.0
+    peerDependenciesMeta:
+      rollup:
+        optional: true
 
   '@rollup/plugin-commonjs@28.0.2':
     resolution:
@@ -2269,6 +2296,10 @@ snapshots:
       fastq: 1.17.1
 
   '@pkgr/core@0.1.1': {}
+
+  '@rollup/plugin-alias@5.1.1(rollup@4.28.1)':
+    optionalDependencies:
+      rollup: 4.28.1
 
   '@rollup/plugin-commonjs@28.0.2(rollup@4.28.1)':
     dependencies:

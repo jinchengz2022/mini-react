@@ -6,7 +6,7 @@ const { name, module } = getPackageJSON('react');
 const pkgPath = resolvePkgPath(name);
 // react 产物路径
 const pkgDistPath = resolvePkgPath(name, true);
-
+console.log(`${pkgPath}/${module}`, 111);
 export default [
 	// react
 	{

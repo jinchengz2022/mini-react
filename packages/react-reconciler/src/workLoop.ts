@@ -48,9 +48,10 @@ function renderNode(root: FiberRootNode) {
 			workLoop();
 			break;
 		} catch (error) {
-			if (__DEV__) {
-				console.error('workloop error', error);
-			}
+			// if (__DEV__) {
+			console.warn('workloop error', error);
+			// }
+			workInProgress = null;
 		}
 	} while (true);
 
@@ -70,9 +71,9 @@ function commitRoot(root: FiberRootNode) {
 		return;
 	}
 
-	if (__DEV__) {
-		console.error('commit start');
-	}
+	// if (__DEV__) {
+	console.warn('commit start');
+	// }
 
 	// reset
 	root.finishedWork = null;

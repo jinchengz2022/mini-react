@@ -14,9 +14,9 @@ export const beginWork = (wip: FiberNode): any => {
 		case HostText:
 			return null;
 		default:
-			if (__DEV__) {
-				console.error('beginWork error');
-			}
+			// if (__DEV__) {
+			console.warn('beginWork error');
+			// }
 			break;
 	}
 };

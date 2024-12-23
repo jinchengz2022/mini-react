@@ -13,7 +13,7 @@ export class FiberNode {
 	tag: WorkTag;
 	key: Key;
 	stateNode: any;
-	type: any;
+	type: any | null;
 
 	return: FiberNode | null;
 	sibling: FiberNode | null;
@@ -79,17 +79,17 @@ export class FiberRootNode {
 }
 
 // fiberRootNode WorkInProgress
-export function createWorkInProgressFiber(
+export const createWorkInProgressFiber = (
 	current: FiberNode,
 	pendingProps: Props
-): FiberNode {
-	let wip = current.alternate as FiberNode;
-
+): FiberNode => {
+	let wip = current.alternate;
 	if (wip === null) {
 		// mount
-		const wip = new FiberNode(current.tag, current.pendingProps, current.key);
+		wip = new FiberNode(current.tag, pendingProps, current.key);
 		wip.stateNode = current.stateNode;
-		wip.alternate = current.alternate;
+
+		wip.alternate = current;
 		current.alternate = wip;
 	} else {
 		// update
@@ -97,16 +97,15 @@ export function createWorkInProgressFiber(
 		wip.flags = NoFlags;
 		wip.subtreeFlags = NoFlags;
 	}
-
 	wip.type = current.type;
 	wip.updateQueue = current.updateQueue;
 	wip.child = current.child;
 	wip.memorizedProps = current.memorizedProps;
 	wip.memorizedState = current.memorizedState;
+	wip.ref = current.ref;
 
-	return wip as FiberNode;
-}
-
+	return wip;
+};
 export function createFiberFromElement(element: ReactElementType) {
 	const { type, key, props } = element;
 
@@ -115,7 +114,7 @@ export function createFiberFromElement(element: ReactElementType) {
 	// <div/> type: 'div'
 	if (typeof type === 'string') {
 		fiberTag = HostComponent;
-	} else if (typeof type !== 'function' && __DEV__) {
+	} else if (typeof type !== 'function') {
 		console.error('fiber 节点类型');
 	}
 

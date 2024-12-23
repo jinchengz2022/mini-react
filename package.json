@@ -4,7 +4,7 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"build:dev": "rm -rf dist && rollup --bundleConfigAsCjs --config scripts/rollup/react.config.js "
+		"build:dev": "rm -rf dist && rollup --bundleConfigAsCjs --config scripts/rollup/dev.config.js "
 	},
 	"keywords": [],
 	"author": "",
@@ -12,6 +12,7 @@
 	"devDependencies": {
 		"@commitlint/cli": "^19.6.1",
 		"@commitlint/config-conventional": "^19.6.0",
+		"@rollup/plugin-alias": "^5.1.1",
 		"@rollup/plugin-commonjs": "^28.0.2",
 		"@typescript-eslint/parser": "^8.18.1",
 		"commitlint": "^19.6.1",

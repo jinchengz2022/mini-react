@@ -1,4 +1,5 @@
 import {
+	Container,
 	appendInitialChild,
 	createInstance,
 	createTextInstance
@@ -20,7 +21,8 @@ export const completeWork = (wip: FiberNode) => {
 			if (current !== null && wip.stateNode) {
 				// update
 			} else {
-				const instance = createTextInstance(wip.type, newProps);
+				const instance = createInstance(wip.type);
+				appendAllChild(instance, wip);
 				wip.stateNode = instance;
 			}
 			bubbleProperties(wip);
@@ -33,22 +35,20 @@ export const completeWork = (wip: FiberNode) => {
 				// update
 			} else {
 				// 构建
-				const instance = createInstance(wip.type, newProps);
-				// 插入
-				appendAllChild(instance, wip);
+				const instance = createTextInstance(newProps.content);
 				wip.stateNode = instance;
 			}
 			bubbleProperties(wip);
 			return null;
 		default:
-			if (__DEV__) {
-				console.error('completework 未实现节点类型');
-			}
+			// if (__DEV__) {
+			console.warn('completework 未实现节点类型');
+			// }
 			break;
 	}
 };
 
-function appendAllChild(parent: FiberNode, wip: FiberNode) {
+function appendAllChild(parent: Container, wip: FiberNode) {
 	let node = wip.child;
 
 	while (node !== null) {

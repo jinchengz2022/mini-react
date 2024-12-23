@@ -27,6 +27,9 @@ export function getPackageJSON(pkgName) {
 }
 
 // commonjs ts 转移插件
-export function getBaseRollupPlugins({ typescript = {} } = {}) {
-	return [replace(), cmj(), ts(typescript)];
+export function getBaseRollupPlugins({
+	typescript = {},
+	alias = { preventAssignment: true }
+} = {}) {
+	return [replace(alias), cmj(), ts(typescript)];
 }
