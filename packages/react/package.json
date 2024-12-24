@@ -1,12 +1,9 @@
 {
 	"name": "react",
-	"version": "1.0.0",
-	"description": "react public function",
+	"version": "0.0.0",
+	"description": "React主模块",
 	"module": "index.ts",
 	"dependencies": {
 		"shared": "workspace:*"
-	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC"
+	}
 }

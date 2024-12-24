@@ -1,18 +1,18 @@
-export type Type = any;
-export type Key = any;
-export type Props = any;
 export type Ref = any;
 export type ElementType = any;
+export type Key = string | null;
+export type Props = {
+	[key: string]: any;
+	children?: ReactElement;
+};
 
-export interface ReactElementType {
-	$$typeof: symbol | number;
+export interface ReactElement {
+	$$typeof: symbol;
+	type: ElementType;
 	key: Key;
 	props: Props;
 	ref: Ref;
-	type: ElementType;
-	_mark: string;
+	__mark: 'KaSong';
 }
 
-export type State = any;
-
-export type Action<State> = State | ((preState: State) => State);
+export type Action<State> = State | ((prevState: State) => State);

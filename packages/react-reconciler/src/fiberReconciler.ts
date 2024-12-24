@@ -1,27 +1,25 @@
-import { Container } from 'hostConfig';
+import { ReactElement } from 'shared/ReactTypes';
 import { FiberNode, FiberRootNode } from './fiber';
+import { Container } from './hostConfig';
 import { HostRoot } from './workTags';
-import { createUpdate, createUpdateQueue, enqueueUpdate } from './updateQueue';
-import { ReactElementType } from 'shared/ReactTypes';
-import { scheduleUpdateOnFinber } from './workLoop';
+import { scheduleUpdateOnFiber } from './workLoop';
+import {
+	createUpdate,
+	enqueueUpdate,
+	createUpdateQueue,
+	UpdateQueue
+} from './updateQueue';
 
-// 创建根节点
-export const createContainer = (container: Container) => {
+export function createContainer(container: Container) {
 	const hostRootFiber = new FiberNode(HostRoot, {}, null);
 	const root = new FiberRootNode(container, hostRootFiber);
-
-	hostRootFiber.updateQueue = createUpdateQueue();
+	hostRootFiber.updateQueue = createUpdateQueue<ReactElement>();
 	return root;
-};
+}
 
-export const updateContainer = (
-	element: ReactElementType | null,
-	root: FiberRootNode
-) => {
+export function updateContainer(element: ReactElement, root: FiberRootNode) {
 	const hostRootFiber = root.current;
-	const update = createUpdate(element);
-	enqueueUpdate(hostRootFiber?.updateQueue as any, update);
-	scheduleUpdateOnFinber(hostRootFiber);
-
-	return element;
-};
+	const update = createUpdate<ReactElement>(element);
+	enqueueUpdate(hostRootFiber.updateQueue as UpdateQueue<ReactElement>, update);
+	scheduleUpdateOnFiber(hostRootFiber);
+}

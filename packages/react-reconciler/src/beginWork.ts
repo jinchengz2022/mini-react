@@ -1,57 +1,64 @@
-import { ReactElementType, State } from 'shared/ReactTypes';
+import { ReactElement } from 'shared/ReactTypes';
+import { mountChildFibers, reconcileChildFibers } from './childFiber';
 import { FiberNode } from './fiber';
-import { UpdateQueue, processUpdateQueue } from './updateQueue';
-import { HostComponent, HostRoot, HostText } from './workTags';
-import { mountChildFibers, reconcileChildFibers } from './childFibers';
+import { renderWithHooks } from './fiberHooks';
+import { processUpdateQueue } from './updateQueue';
+import {
+	FunctionComponent,
+	HostComponent,
+	HostRoot,
+	HostText
+} from './workTags';
 
-// 递归中的 ‘递’ 阶段
-export const beginWork = (wip: FiberNode): any => {
-	switch (wip.tag) {
+export const beginWork = (workInProgress: FiberNode) => {
+	switch (workInProgress.tag) {
 		case HostRoot:
-			return updateHostRoot(wip);
+			return updateHostRoot(workInProgress);
 		case HostComponent:
-			return updateHostComponent(wip);
+			return updateHostComponent(workInProgress);
 		case HostText:
 			return null;
+		case FunctionComponent:
+			return updateFunctionComponent(workInProgress);
 		default:
-			// if (__DEV__) {
-			console.warn('beginWork error');
-			// }
-			break;
+			console.error('beginWork未处理的情况');
+			return null;
 	}
 };
 
-function updateHostRoot(wip: FiberNode) {
-	const baseState = wip.memorizedState;
-	const updateQueue = wip.updateQueue as UpdateQueue<State>;
-	const pending = updateQueue.shared.pending;
-	updateQueue.shared.pending = null;
-
-	const { memorizedState } = processUpdateQueue(baseState, pending);
-	wip.memorizedState = memorizedState;
-
-	const nextChildren = wip.memorizedState;
-	reconcileChildren(wip, nextChildren);
-
-	return wip.child;
+function updateFunctionComponent(workInProgress: FiberNode) {
+	const nextChildren = renderWithHooks(workInProgress);
+	reconcileChildren(workInProgress, nextChildren);
+	return workInProgress.child;
 }
 
-function updateHostComponent(wip: FiberNode) {
-	const nextProps = wip.pendingProps;
+function updateHostComponent(workInProgress: FiberNode) {
+	// 根据element创建fiberNode
+	const nextProps = workInProgress.pendingProps;
 	const nextChildren = nextProps.children;
-	reconcileChildren(wip, nextChildren);
-
-	return wip.child;
+	reconcileChildren(workInProgress, nextChildren);
+	return workInProgress.child;
 }
 
-function reconcileChildren(wip: FiberNode, children?: ReactElementType) {
-	const current = wip.alternate;
+function updateHostRoot(workInProgress: FiberNode) {
+	processUpdateQueue(workInProgress);
+	const nextChildren = workInProgress.memoizedState;
+	reconcileChildren(workInProgress, nextChildren);
+	return workInProgress.child;
+}
+
+function reconcileChildren(workInProgress: FiberNode, children?: ReactElement) {
+	const current = workInProgress.alternate;
 
 	if (current !== null) {
 		// update
-		wip.child = reconcileChildFibers(wip, current.child, children);
+		workInProgress.child = reconcileChildFibers(
+			workInProgress,
+			current.child,
+			children
+		);
 	} else {
 		// mount
-		wip.child = mountChildFibers(wip, null, children);
+		workInProgress.child = mountChildFibers(workInProgress, null, children);
 	}
 }

@@ -1,7 +1,7 @@
 export type WorkTag =
 	| typeof FunctionComponent
-	| typeof HostComponent
 	| typeof HostRoot
+	| typeof HostComponent
 	| typeof HostText;
 
 export const FunctionComponent = 0;

@@ -1,16 +1,15 @@
-import { Container } from 'hostConfig';
+import { Container } from './hostConfig';
 import {
-	createContainer,
-	updateContainer
+	updateContainer,
+	createContainer
 } from 'react-reconciler/src/fiberReconciler';
-import { ReactElementType } from 'shared/ReactTypes';
+import { ReactElement } from 'shared/ReactTypes';
 
-export const createRoot = (container: Container) => {
+export function createRoot(container: Container) {
 	const root = createContainer(container);
-
 	return {
-		render: (element: ReactElementType) => {
+		render(element: ReactElement) {
 			updateContainer(element, root);
 		}
 	};
-};
+}
