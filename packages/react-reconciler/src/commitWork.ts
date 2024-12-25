@@ -10,9 +10,7 @@ import {
 	appendChildToContainer,
 	commitTextUpdate,
 	Container,
-	Instance,
-	removeChild,
-	TextInstance
+	removeChild
 } from './hostConfig';
 import {
 	FunctionComponent,
@@ -76,6 +74,11 @@ const commitMutationEffectsOnFiber = (finishedWork: FiberNode) => {
 	}
 };
 
+const commitPlacement = (finishedWork: FiberNode) => {
+	const hostParent = getHostParent(finishedWork) as Container;
+	appendPlacementNodeIntoContainer(finishedWork, hostParent);
+};
+
 const commitUpdate = (fiber: FiberNode) => {
 	switch (fiber.tag) {
 		case HostText:
@@ -85,6 +88,39 @@ const commitUpdate = (fiber: FiberNode) => {
 			break;
 	}
 };
+
+function appendPlacementNodeIntoContainer(fiber: FiberNode, parent: Container) {
+	if (fiber.tag === HostComponent || fiber.tag === HostText) {
+		appendChildToContainer(fiber.stateNode, parent);
+		return;
+	}
+	const child = fiber.child;
+	if (child !== null) {
+		appendPlacementNodeIntoContainer(child, parent);
+		let sibling = child.sibling;
+
+		while (sibling !== null) {
+			appendPlacementNodeIntoContainer(sibling, parent);
+			sibling = sibling.sibling;
+		}
+	}
+}
+
+function getHostParent(fiber: FiberNode) {
+	let parent = fiber.return;
+
+	while (parent) {
+		const parentTag = parent.tag;
+		if (parentTag === HostComponent) {
+			return parent.stateNode as Container;
+		}
+		if (parentTag === HostRoot) {
+			return (parent.stateNode as FiberRootNode).container;
+		}
+		parent = parent.return;
+	}
+	console.error('getHostParent未找到hostParent');
+}
 
 function commitDeletion(childToDelete: FiberNode) {
 	if (__DEV__) {
@@ -151,42 +187,4 @@ function commitNestedUnmounts(
 		node.sibling.return = node.return;
 		node = node.sibling;
 	}
-}
-
-const commitPlacement = (finishedWork: FiberNode) => {
-	const hostParent = getHostParent(finishedWork) as Container;
-	appendPlacementNodeIntoContainer(finishedWork, hostParent);
-};
-
-function appendPlacementNodeIntoContainer(fiber: FiberNode, parent: Container) {
-	if (fiber.tag === HostComponent || fiber.tag === HostText) {
-		appendChildToContainer(fiber.stateNode, parent);
-		return;
-	}
-	const child = fiber.child;
-	if (child !== null) {
-		appendPlacementNodeIntoContainer(child, parent);
-		let sibling = child.sibling;
-
-		while (sibling !== null) {
-			appendPlacementNodeIntoContainer(sibling, parent);
-			sibling = sibling.sibling;
-		}
-	}
-}
-
-function getHostParent(fiber: FiberNode) {
-	let parent = fiber.return;
-
-	while (parent) {
-		const parentTag = parent.tag;
-		if (parentTag === HostComponent) {
-			return parent.stateNode as Container;
-		}
-		if (parentTag === HostRoot) {
-			return (parent.stateNode as FiberRootNode).container;
-		}
-		parent = parent.return;
-	}
-	console.error('getHostParent未找到hostParent');
 }
