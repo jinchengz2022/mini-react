@@ -2,7 +2,7 @@ import { ReactElement } from 'shared/ReactTypes';
 import { mountChildFibers, reconcileChildFibers } from './childFiber';
 import { FiberNode } from './fiber';
 import { renderWithHooks } from './fiberHooks';
-import { processUpdateQueue } from './updateQueue';
+import { processUpdateQueue, UpdateQueue } from './updateQueue';
 import {
 	FunctionComponent,
 	HostComponent,
@@ -11,6 +11,9 @@ import {
 } from './workTags';
 
 export const beginWork = (workInProgress: FiberNode) => {
+	if (__DEV__) {
+		console.log('beginWork流程', workInProgress.type);
+	}
 	switch (workInProgress.tag) {
 		case HostRoot:
 			return updateHostRoot(workInProgress);
@@ -41,8 +44,15 @@ function updateHostComponent(workInProgress: FiberNode) {
 }
 
 function updateHostRoot(workInProgress: FiberNode) {
-	processUpdateQueue(workInProgress);
-	const nextChildren = workInProgress.memoizedState;
+	const baseState = workInProgress.memorizedState;
+	const updateQueue = workInProgress.updateQueue as UpdateQueue<Element>;
+	workInProgress.memorizedState = processUpdateQueue(
+		baseState,
+		updateQueue,
+		workInProgress
+	);
+
+	const nextChildren = workInProgress.memorizedState;
 	reconcileChildren(workInProgress, nextChildren);
 	return workInProgress.child;
 }

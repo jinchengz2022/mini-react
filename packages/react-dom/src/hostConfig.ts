@@ -1,3 +1,6 @@
+import { FiberNode } from 'react-reconciler/src/fiber';
+import { HostText } from 'react-reconciler/src/workTags';
+
 export type Container = Element | Document;
 export type Instance = Element;
 export type TextInstance = Text;
@@ -20,3 +23,17 @@ export const appendChildToContainer = (
 ) => {
 	container.appendChild(child);
 };
+
+export const commitTextUpdate = (
+	textInstance: TextInstance,
+	content: string
+) => {
+	textInstance.textContent = content;
+};
+
+export function removeChild(
+	child: Instance | TextInstance,
+	container: Container
+) {
+	container.removeChild(child);
+}

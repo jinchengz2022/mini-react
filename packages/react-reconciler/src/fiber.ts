@@ -20,9 +20,11 @@ export class FiberNode {
 	index: number;
 
 	updateQueue: unknown;
-	memoizedState: any;
+	memorizedState: any;
 
 	alternate: FiberNode | null;
+
+	deletions: FiberNode[] | null;
 
 	constructor(tag: WorkTag, pendingProps: Props, key: Key) {
 		// 实例
@@ -43,7 +45,7 @@ export class FiberNode {
 		this.pendingProps = pendingProps;
 		this.memoizedProps = null;
 		this.updateQueue = null;
-		this.memoizedState = null;
+		this.memorizedState = null;
 
 		// 副作用
 		this.flags = NoFlags;
@@ -55,6 +57,7 @@ export class FiberNode {
 		// this.childLanes = NoLanes;
 
 		this.alternate = null;
+		this.deletions = null;
 	}
 }
 
@@ -107,7 +110,7 @@ export const createWorkInProgress = (
 
 	// 数据
 	wip.memoizedProps = current.memoizedProps;
-	wip.memoizedState = current.memoizedState;
+	wip.memorizedState = current.memorizedState;
 
 	return wip;
 };
