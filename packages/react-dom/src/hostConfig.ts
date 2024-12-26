@@ -27,6 +27,13 @@ export const appendChildToContainer = (
 ) => {
 	container.appendChild(child);
 };
+export const insertChildToContainer = (
+	child: Instance,
+	container: Container,
+	before: Instance
+) => {
+	container.insertBefore(before, child);
+};
 
 export const commitTextUpdate = (
 	textInstance: TextInstance,
