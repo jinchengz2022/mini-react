@@ -8,6 +8,9 @@ import { HostRoot } from './workTags';
 let workInProgress: FiberNode | null = null;
 
 export function scheduleUpdateOnFiber(fiber: FiberNode) {
+	if (__DEV__) {
+		console.log('开始schedule阶段', fiber);
+	}
 	const root = markUpdateLaneFromFiberToRoot(fiber);
 
 	if (root === null) {
@@ -30,7 +33,6 @@ function markUpdateLaneFromFiberToRoot(fiber: FiberNode) {
 }
 
 function ensureRootIsScheduled(root: FiberRootNode) {
-	// 一些调度行为
 	performSyncWorkOnRoot(root);
 }
 
@@ -66,6 +68,10 @@ function commitRoot(root: FiberRootNode) {
 	if (finishedWork === null) {
 		return;
 	}
+	if (__DEV__) {
+		console.log('开始commit阶段', finishedWork);
+	}
+
 	// 重置
 	root.finishedWork = null;
 
@@ -92,6 +98,9 @@ function commitRoot(root: FiberRootNode) {
 }
 
 function prepareFreshStack(root: FiberRootNode) {
+	if (__DEV__) {
+		console.log('render阶段初始化工作', root);
+	}
 	workInProgress = createWorkInProgress(root.current, {});
 }
 
@@ -103,7 +112,8 @@ function workLoop() {
 
 function performUnitOfWork(fiber: FiberNode) {
 	const next = beginWork(fiber);
-
+	// 执行完beginWork后，pendingProps 变为 memoizedProps
+	fiber.memoizedProps = fiber.pendingProps;
 	if (next === null) {
 		completeUnitOfWork(fiber);
 	} else {
@@ -124,7 +134,7 @@ function completeUnitOfWork(fiber: FiberNode) {
 
 		const sibling = node.sibling;
 		if (sibling) {
-			workInProgress = next;
+			workInProgress = sibling;
 			return;
 		}
 		node = node.return;
