@@ -26,34 +26,50 @@ function ChildReconciler(shouldTrackEffect: boolean) {
 			deletions.push(childToDelete);
 		}
 	}
+
+	function deleteRemainingChildren(
+		returnFiber: FiberNode,
+		currentFirstChild: FiberNode | null
+	) {
+		if (!shouldTrackEffect) {
+			return;
+		}
+
+		let childToDelete = currentFirstChild;
+		while (childToDelete !== null) {
+			deleteChild(returnFiber, childToDelete);
+			childToDelete = childToDelete.sibling;
+		}
+	}
+
 	function reconcileSingleElement(
 		returnFiber: FiberNode,
 		currentFirstChild: FiberNode | null,
 		element: ReactElement
 	) {
-		// TODO 前：abc 后：a  删除bc
-		// 前：a 后：b 删除b、创建a
-		// 前：无 后：a 创建a
 		const key = element.key;
-		if (currentFirstChild !== null) {
+		while (currentFirstChild !== null) {
 			if (currentFirstChild.key === key) {
 				// key相同，比较type
-
 				if (element.$$typeof === REACT_ELEMENT_TYPE) {
 					if (currentFirstChild.type === element.type) {
 						// type相同 可以复用
 						const existing = useFiber(currentFirstChild, element.props);
 						existing.return = returnFiber;
+						deleteRemainingChildren(returnFiber, currentFirstChild.sibling);
 						return existing;
 					}
-					// type不同，删除旧的
-					deleteChild(returnFiber, currentFirstChild);
+					// type不同，删除所有旧的
+					deleteRemainingChildren(returnFiber, currentFirstChild);
+					break;
 				} else {
 					console.error('未定义的element.$$typeof', element.$$typeof);
+					break;
 				}
 			} else {
 				// key不同，删除旧的
 				deleteChild(returnFiber, currentFirstChild);
+				currentFirstChild = currentFirstChild.sibling;
 			}
 		}
 		// 创建新的
@@ -74,16 +90,15 @@ function ChildReconciler(shouldTrackEffect: boolean) {
 		currentFirstChild: FiberNode | null,
 		content: string
 	) {
-		// 前：b 后：a
-		// TODO 前：abc 后：a
-		// TODO 前：bca 后：a
-		if (currentFirstChild !== null && currentFirstChild.tag === HostText) {
-			const existing = useFiber(currentFirstChild, { content });
-			existing.return = returnFiber;
-			return existing;
-		}
-		if (currentFirstChild !== null) {
+		while (currentFirstChild !== null) {
+			if (currentFirstChild.tag === HostText) {
+				const existing = useFiber(currentFirstChild, { content });
+				existing.return = returnFiber;
+				deleteRemainingChildren(returnFiber, currentFirstChild.sibling);
+				return existing;
+			}
 			deleteChild(returnFiber, currentFirstChild);
+			currentFirstChild = currentFirstChild.sibling;
 		}
 
 		const created = new FiberNode(HostText, { content }, null);
