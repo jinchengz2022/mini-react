@@ -1,3 +1,4 @@
+import { updateFiberProps } from 'react-dom/src/SynctheticEvent';
 import { FiberNode } from './fiber';
 import { NoFlags, Update } from './fiberFlags';
 import {
@@ -69,9 +70,10 @@ export const completeWork = (workInProgress: FiberNode) => {
 			if (current !== null && workInProgress.stateNode) {
 				// 更新
 				// TODO 更新元素属性
+				updateFiberProps(workInProgress.stateNode, newProps);
 			} else {
 				// 初始化DOM
-				const instance = createInstance(workInProgress.type);
+				const instance = createInstance(workInProgress.type, newProps);
 				// 挂载DOM
 				appendAllChildren(instance, workInProgress);
 				workInProgress.stateNode = instance;

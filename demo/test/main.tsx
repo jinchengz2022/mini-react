@@ -4,10 +4,8 @@ import ReactDOM from 'react-dom';
 console.log({ React, ReactDOM });
 
 const App = () => {
-	const [num, setNum] = useState('hhhhh');
-	window.setNum = setNum;
-	console.log({ num });
+	const [num, setNum] = useState(22);
 
-	return <div>{num}</div>;
+	return <div onClick={() => setNum((pre) => pre + 1)}>{num}</div>;
 };
 ReactDOM.createRoot(document.querySelector('#root')).render(<App />);
