@@ -12,22 +12,15 @@ const App = ({ name }) => {
 
 	// return <div onClick={() => setNum((pre) => pre + 1)}>{caseA}</div>;
 	return (
-		<h3
-			onClick={(e) => {
-				// e.stopPropagation();
-				setNum((pre) => pre + 1);
-			}}
-		>{`${name} --- ${num}`}</h3>
+		<div onClick={() => setNum((pre) => pre + 1)} key="sibling-----1">
+			eiwnfiwufnuiwenf93f--------{num}
+		</div>
 	);
 };
 
 ReactDOM.createRoot(document.querySelector('#root')).render(
-	<div>
-		<p>2</p>
-		<p>3</p>
-		<>
-			<p>4</p>
-			<p>5</p>
-		</>
+	<div key="parent">
+		<App name="lina" />
+		<p key="sibling---2">windy</p>
 	</div>
 );

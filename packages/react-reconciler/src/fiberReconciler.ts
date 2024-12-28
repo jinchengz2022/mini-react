@@ -17,7 +17,7 @@ export function createContainer(container: Container) {
 	return root;
 }
 
-// 将 render 节点作为 action 挂载到 root 的 updatequeue 中
+// 将 react_element 节点作为 action 挂载到 root 的 updatequeue 中
 export function updateContainer(
 	element: ReactElementType,
 	root: FiberRootNode

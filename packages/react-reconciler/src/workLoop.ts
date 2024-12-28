@@ -19,6 +19,7 @@ export function scheduleUpdateOnFiber(fiber: FiberNode) {
 	ensureRootIsScheduled(root);
 }
 
+// 找到 root
 function markUpdateLaneFromFiberToRoot(fiber: FiberNode) {
 	let node = fiber;
 	let parent = node.return;
@@ -58,10 +59,12 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
 	const finishedWork = root.current.alternate;
 	root.finishedWork = finishedWork;
 
+	// 所有 fiber、wip、flag、合成事件 执行完成
 	// commit阶段操作
 	commitRoot(root);
 }
 
+// 开始插入/改变真实 dom
 function commitRoot(root: FiberRootNode) {
 	const finishedWork = root.finishedWork;
 
@@ -101,6 +104,8 @@ function prepareFreshStack(root: FiberRootNode) {
 	if (__DEV__) {
 		console.log('render阶段初始化工作', root);
 	}
+
+	// 创建虚拟 dom 树
 	workInProgress = createWorkInProgress(root.current, {});
 }
 
@@ -110,6 +115,8 @@ function workLoop() {
 	}
 }
 
+// 循环至最下层子节点
+// root ---> 最下层子节点
 function performUnitOfWork(fiber: FiberNode) {
 	const next = beginWork(fiber);
 	// 执行完beginWork后，pendingProps 变为 memorizedProps
@@ -121,6 +128,7 @@ function performUnitOfWork(fiber: FiberNode) {
 	}
 }
 
+// 最下层子节点 ---> root
 function completeUnitOfWork(fiber: FiberNode) {
 	let node: FiberNode | null = fiber;
 

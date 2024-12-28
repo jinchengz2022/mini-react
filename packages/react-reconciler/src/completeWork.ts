@@ -70,7 +70,6 @@ export const completeWork = (workInProgress: FiberNode) => {
 		case HostComponent:
 			if (current !== null && workInProgress.stateNode) {
 				// 更新
-				// TODO 更新元素属性
 				updateFiberProps(workInProgress.stateNode, newProps);
 			} else {
 				// 初始化DOM
@@ -78,8 +77,6 @@ export const completeWork = (workInProgress: FiberNode) => {
 				// 挂载DOM
 				appendAllChildren(instance, workInProgress);
 				workInProgress.stateNode = instance;
-
-				// TODO 初始化元素属性
 			}
 			// 冒泡flag
 			bubbleProperties(workInProgress);

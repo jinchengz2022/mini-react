@@ -34,14 +34,16 @@ export class FiberNode {
 	constructor(tag: WorkTag, pendingProps: Props, key: Key) {
 		// 实例
 		this.tag = tag;
-		this.key = key || null; // fragment 没有key
+		// fragment 没有key
+		this.key = key || null;
+		// 当前节点
 		this.stateNode = null;
 		this.type = null;
 
 		// 树结构
-		this.return = null;
-		this.sibling = null;
-		this.child = null;
+		this.return = null; // 父亲
+		this.sibling = null; // 兄弟
+		this.child = null; // 娃娃
 		this.index = 0;
 
 		this.ref = null;
@@ -61,7 +63,7 @@ export class FiberNode {
 		// this.lanes = NoLanes;
 		// this.childLanes = NoLanes;
 
-		this.alternate = null;
+		this.alternate = null; // wip fiber 树
 		this.deletions = null;
 	}
 }

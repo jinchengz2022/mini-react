@@ -11,6 +11,7 @@ import {
 	HostText
 } from './workTags';
 
+// 对应 tag 执行对应操作
 export const beginWork = (workInProgress: FiberNode) => {
 	if (__DEV__) {
 		console.log('beginWork流程', workInProgress.type);
@@ -74,6 +75,7 @@ function reconcileChildren(
 
 	if (current !== null) {
 		// update
+		// 向下继续遍历
 		workInProgress.child = reconcileChildFibers(
 			workInProgress,
 			current.child,

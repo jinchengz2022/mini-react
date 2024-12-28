@@ -47,9 +47,6 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		currentFirstChild: FiberNode | null,
 		element: ReactElementType
 	) {
-		// 前：abc 后：a  删除bc
-		// 前：a 后：b 删除b、创建a
-		// 前：无 后：a 创建a
 		const key = element.key;
 		let current = currentFirstChild;
 
@@ -167,9 +164,6 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		currentFirstChild: FiberNode | null,
 		content: string
 	) {
-		// 前：b 后：a
-		// TODO 前：abc 后：a
-		// TODO 前：bca 后：a
 		let current = currentFirstChild;
 		while (current !== null) {
 			if (current.tag === HostText) {
@@ -210,18 +204,8 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 			current = current.sibling;
 		}
 
-		// 遍历流程
 		for (let i = 0; i < newChild.length; i++) {
-			/**
-			 * TODO after可能还是array 考虑如下，其中list是个array：
-			 * <ul>
-			 * 	<li></li>
-			 * 	{list}
-			 * </ul>
-			 * 这种情况我们应该视after为Fragment
-			 */
 			const after = newChild[i];
-
 			// after对应的fiber，可能来自于复用，也可能是新建
 			const newFiber = updateFromMap(
 				returnFiber,
@@ -266,6 +250,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		return firstNewFiber;
 	}
 
+	// 新增或复用节点并打上标记
 	function reconcileChildFibers(
 		returnFiber: FiberNode,
 		currentFirstChild: FiberNode | null,
@@ -279,8 +264,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		if (isUnKeyedTopLevelFragment) {
 			newChild = newChild?.props.children;
 		}
-		// newChild 为 JSX
-		// currentFirstChild 为 fiberNode
+
 		if (typeof newChild === 'object' && newChild !== null) {
 			if (Array.isArray(newChild)) {
 				return reconcileChildrenArray(returnFiber, currentFirstChild, newChild);
