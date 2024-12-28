@@ -1,9 +1,10 @@
-import { ReactElement } from 'shared/ReactTypes';
+import { ReactElementType } from 'shared/ReactTypes';
 import { mountChildFibers, reconcileChildFibers } from './childFiber';
 import { FiberNode } from './fiber';
 import { renderWithHooks } from './fiberHooks';
 import { processUpdateQueue, UpdateQueue } from './updateQueue';
 import {
+	Fragment,
 	FunctionComponent,
 	HostComponent,
 	HostRoot,
@@ -23,11 +24,19 @@ export const beginWork = (workInProgress: FiberNode) => {
 			return null;
 		case FunctionComponent:
 			return updateFunctionComponent(workInProgress);
+		case Fragment:
+			return updateFragment(workInProgress);
 		default:
 			console.error('beginWork未处理的情况');
 			return null;
 	}
 };
+
+function updateFragment(workInProgress: FiberNode) {
+	const nextChildren: any = workInProgress.pendingProps;
+	reconcileChildren(workInProgress, nextChildren);
+	return workInProgress.child;
+}
 
 function updateFunctionComponent(workInProgress: FiberNode) {
 	const nextChildren = renderWithHooks(workInProgress);
@@ -57,7 +66,10 @@ function updateHostRoot(workInProgress: FiberNode) {
 	return workInProgress.child;
 }
 
-function reconcileChildren(workInProgress: FiberNode, children?: ReactElement) {
+function reconcileChildren(
+	workInProgress: FiberNode,
+	children?: ReactElementType
+) {
 	const current = workInProgress.alternate;
 
 	if (current !== null) {

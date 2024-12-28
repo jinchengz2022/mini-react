@@ -1,4 +1,4 @@
-import { ReactElement } from 'shared/ReactTypes';
+import { ReactElementType } from 'shared/ReactTypes';
 import { FiberNode, FiberRootNode } from './fiber';
 import { Container } from './hostConfig';
 import { HostRoot } from './workTags';
@@ -13,13 +13,22 @@ import {
 export function createContainer(container: Container) {
 	const hostRootFiber = new FiberNode(HostRoot, {}, null);
 	const root = new FiberRootNode(container, hostRootFiber);
-	hostRootFiber.updateQueue = createUpdateQueue<ReactElement>();
+	hostRootFiber.updateQueue = createUpdateQueue<ReactElementType>();
 	return root;
 }
 
-export function updateContainer(element: ReactElement, root: FiberRootNode) {
+// 将 render 节点作为 action 挂载到 root 的 updatequeue 中
+export function updateContainer(
+	element: ReactElementType,
+	root: FiberRootNode
+) {
 	const hostRootFiber = root.current;
-	const update = createUpdate<ReactElement>(element);
-	enqueueUpdate(hostRootFiber.updateQueue as UpdateQueue<ReactElement>, update);
+	const update = createUpdate<ReactElementType>(element);
+	enqueueUpdate(
+		hostRootFiber.updateQueue as UpdateQueue<ReactElementType>,
+		update
+	);
 	scheduleUpdateOnFiber(hostRootFiber);
+
+	return element;
 }

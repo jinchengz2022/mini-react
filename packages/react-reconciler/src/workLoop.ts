@@ -112,8 +112,8 @@ function workLoop() {
 
 function performUnitOfWork(fiber: FiberNode) {
 	const next = beginWork(fiber);
-	// 执行完beginWork后，pendingProps 变为 memoizedProps
-	fiber.memoizedProps = fiber.pendingProps;
+	// 执行完beginWork后，pendingProps 变为 memorizedProps
+	fiber.memorizedProps = fiber.pendingProps;
 	if (next === null) {
 		completeUnitOfWork(fiber);
 	} else {

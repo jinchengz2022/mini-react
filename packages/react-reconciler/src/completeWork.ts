@@ -8,6 +8,7 @@ import {
 	Instance
 } from './hostConfig';
 import {
+	Fragment,
 	FunctionComponent,
 	HostComponent,
 	HostRoot,
@@ -83,13 +84,11 @@ export const completeWork = (workInProgress: FiberNode) => {
 			// 冒泡flag
 			bubbleProperties(workInProgress);
 			return null;
-		case HostRoot:
-			bubbleProperties(workInProgress);
-			return null;
+
 		case HostText:
 			if (current !== null && workInProgress.stateNode) {
 				// 更新
-				const oldText = current.memoizedProps?.content;
+				const oldText = current.memorizedProps?.content;
 				const newText = newProps.content;
 				if (oldText !== newText) {
 					markUpdate(workInProgress);
@@ -103,6 +102,8 @@ export const completeWork = (workInProgress: FiberNode) => {
 			// 冒泡flag
 			bubbleProperties(workInProgress);
 			return null;
+		case HostRoot:
+		case Fragment:
 		case FunctionComponent:
 			bubbleProperties(workInProgress);
 			return null;

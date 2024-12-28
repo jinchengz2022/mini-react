@@ -1,19 +1,25 @@
-import { REACT_ELEMENT_TYPE } from 'shared/ReactSymbols';
-import { Key, ElementType, Ref, Props, ReactElement } from 'shared/ReactTypes';
+import { REACT_ELEMENT_TYPE, REACT_FRAGMENT_TYPE } from 'shared/ReactSymbols';
+import {
+	Key,
+	ElementType,
+	Ref,
+	Props,
+	ReactElementType
+} from 'shared/ReactTypes';
 
 const ReactElement = function (
 	type: ElementType,
 	key: Key,
 	ref: Ref,
 	props: Props
-): ReactElement {
-	const element: ReactElement = {
+): ReactElementType {
+	const element: ReactElementType = {
 		$$typeof: REACT_ELEMENT_TYPE,
 		type: type,
 		key,
 		ref,
 		props,
-		__mark: 'KaSong'
+		__mark: 'jincheng'
 	};
 
 	return element;
@@ -54,3 +60,4 @@ const jsx = (type: ElementType, config: any) => {
 };
 
 export const jsxDEV = jsx;
+export const Fragment = REACT_FRAGMENT_TYPE;

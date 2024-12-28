@@ -1,11 +1,16 @@
-import { Key, Props, ReactElement, Ref } from 'shared/ReactTypes';
+import { Key, Props, ReactElementType, Ref } from 'shared/ReactTypes';
 import { Flags, NoFlags } from './fiberFlags';
 import { Container } from './hostConfig';
-import { FunctionComponent, HostComponent, WorkTag } from './workTags';
+import {
+	Fragment,
+	FunctionComponent,
+	HostComponent,
+	WorkTag
+} from './workTags';
 
 export class FiberNode {
 	pendingProps: Props;
-	memoizedProps: Props | null;
+	memorizedProps: Props | null;
 	key: Key;
 	stateNode: any;
 	type: any;
@@ -29,7 +34,7 @@ export class FiberNode {
 	constructor(tag: WorkTag, pendingProps: Props, key: Key) {
 		// 实例
 		this.tag = tag;
-		this.key = key;
+		this.key = key || null; // fragment 没有key
 		this.stateNode = null;
 		this.type = null;
 
@@ -43,7 +48,7 @@ export class FiberNode {
 
 		// 状态
 		this.pendingProps = pendingProps;
-		this.memoizedProps = null;
+		this.memorizedProps = null;
 		this.updateQueue = null;
 		this.memorizedState = null;
 
@@ -73,7 +78,7 @@ export class FiberRootNode {
 	}
 }
 
-export function createFiberFromElement(element: ReactElement): FiberNode {
+export function createFiberFromElement(element: ReactElementType): FiberNode {
 	const { type, key, props } = element;
 	let fiberTag: WorkTag = FunctionComponent;
 
@@ -82,6 +87,12 @@ export function createFiberFromElement(element: ReactElement): FiberNode {
 	}
 	const fiber = new FiberNode(fiberTag, props, key);
 	fiber.type = type;
+
+	return fiber;
+}
+
+export function createFiberFromFragment(elements: any[], key: Key): FiberNode {
+	const fiber = new FiberNode(Fragment, elements, key);
 
 	return fiber;
 }
@@ -109,7 +120,7 @@ export const createWorkInProgress = (
 	wip.child = current.child;
 
 	// 数据
-	wip.memoizedProps = current.memoizedProps;
+	wip.memorizedProps = current.memorizedProps;
 	wip.memorizedState = current.memorizedState;
 
 	return wip;
