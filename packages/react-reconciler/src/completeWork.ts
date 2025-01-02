@@ -60,9 +60,6 @@ function markUpdate(fiber: FiberNode) {
 }
 
 export const completeWork = (workInProgress: FiberNode) => {
-	if (__DEV__) {
-		console.log('complete流程', workInProgress.type);
-	}
 	const newProps = workInProgress.pendingProps;
 	const current = workInProgress.alternate;
 

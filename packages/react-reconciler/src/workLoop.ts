@@ -3,19 +3,31 @@ import { commitMutationEffects } from './commitWork';
 import { completeWork } from './completeWork';
 import { createWorkInProgress, FiberNode, FiberRootNode } from './fiber';
 import { MutationMask, NoFlags } from './fiberFlags';
+import {
+	getHighestPriorityLane,
+	Lane,
+	markRootFinished,
+	mergeLanes,
+	NoLane,
+	SyncLane
+} from './fiberLanes';
+import { scheduleMicroTask } from './hostConfig';
+import { flushSyncCallbacks, scheduleSyncCallback } from './syncTaskQueue';
 import { HostRoot } from './workTags';
 
 let workInProgress: FiberNode | null = null;
+let wipRootRenderLane: Lane = NoLane;
 
-export function scheduleUpdateOnFiber(fiber: FiberNode) {
+export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 	if (__DEV__) {
-		console.log('开始schedule阶段', fiber);
+		console.warn('开始schedule阶段', fiber);
 	}
 	const root = markUpdateLaneFromFiberToRoot(fiber);
 
 	if (root === null) {
 		return;
 	}
+	markRootUpdated(root, lane);
 	ensureRootIsScheduled(root);
 }
 
@@ -33,13 +45,41 @@ function markUpdateLaneFromFiberToRoot(fiber: FiberNode) {
 	return null;
 }
 
-function ensureRootIsScheduled(root: FiberRootNode) {
-	performSyncWorkOnRoot(root);
+function markRootUpdated(root: FiberRootNode, lane: Lane) {
+	root.pendingLanes = mergeLanes(root.pendingLanes, lane);
 }
 
-function performSyncWorkOnRoot(root: FiberRootNode) {
+function ensureRootIsScheduled(root: FiberRootNode) {
+	const updateLane = getHighestPriorityLane(root.pendingLanes);
+	if (updateLane === NoLane) {
+		return;
+	}
+
+	// 同步优先级用微任务调度
+	if (updateLane === SyncLane) {
+		if (__DEV__) {
+			console.warn('微任务调度，优先级：', updateLane);
+		}
+		scheduleSyncCallback(performSyncWorkOnRoot.bind(null, root, updateLane));
+		scheduleMicroTask(flushSyncCallbacks);
+	} else {
+		// 其他优先级任务
+	}
+}
+
+function performSyncWorkOnRoot(root: FiberRootNode, lane: Lane) {
+	const nextLane = getHighestPriorityLane(root.pendingLanes);
+	if (nextLane !== SyncLane) {
+		ensureRootIsScheduled(root);
+		return;
+	}
+
+	if (__DEV__) {
+		console.warn('render 阶段');
+	}
+
 	// 初始化操作
-	prepareFreshStack(root);
+	prepareFreshStack(root, lane);
 
 	// render阶段具体操作
 	do {
@@ -58,25 +98,33 @@ function performSyncWorkOnRoot(root: FiberRootNode) {
 
 	const finishedWork = root.current.alternate;
 	root.finishedWork = finishedWork;
+	root.finishedLane = lane;
+	wipRootRenderLane = NoLane;
 
 	// 所有 fiber、wip、flag、合成事件 执行完成
 	// commit阶段操作
-	commitRoot(root);
+	commitRoot(root, lane);
 }
 
 // 开始插入/改变真实 dom
-function commitRoot(root: FiberRootNode) {
+function commitRoot(root: FiberRootNode, lane: Lane) {
 	const finishedWork = root.finishedWork;
 
 	if (finishedWork === null) {
 		return;
 	}
 	if (__DEV__) {
-		console.log('开始commit阶段', finishedWork);
+		console.warn('开始commit阶段', finishedWork);
 	}
 
+	const finishedLane = root.finishedLane;
+	if (finishedLane === NoLane && __DEV__) {
+		console.warn('commit 阶段 lane 错误');
+	}
 	// 重置
+	root.finishedLane = NoLane;
 	root.finishedWork = null;
+	markRootFinished(root, lane);
 
 	const subtreeHasEffect =
 		(finishedWork.subtreeFlags & MutationMask) !== NoFlags;
@@ -100,13 +148,11 @@ function commitRoot(root: FiberRootNode) {
 	}
 }
 
-function prepareFreshStack(root: FiberRootNode) {
-	if (__DEV__) {
-		console.log('render阶段初始化工作', root);
-	}
-
+function prepareFreshStack(root: FiberRootNode, lane: Lane) {
 	// 创建虚拟 dom 树
 	workInProgress = createWorkInProgress(root.current, {});
+
+	wipRootRenderLane = lane;
 }
 
 function workLoop() {
@@ -118,7 +164,7 @@ function workLoop() {
 // 循环至最下层子节点
 // root ---> 最下层子节点
 function performUnitOfWork(fiber: FiberNode) {
-	const next = beginWork(fiber);
+	const next = beginWork(fiber, wipRootRenderLane);
 	// 执行完beginWork后，pendingProps 变为 memorizedProps
 	fiber.memorizedProps = fiber.pendingProps;
 	if (next === null) {

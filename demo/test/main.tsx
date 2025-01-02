@@ -12,9 +12,16 @@ const App = ({ name }) => {
 
 	// return <div onClick={() => setNum((pre) => pre + 1)}>{caseA}</div>;
 	return (
-		<div onClick={() => setNum((pre) => pre + 1)} key="sibling-----1">
+		<h1
+			onClick={() => {
+				setNum((pre) => pre + 1);
+				setNum((pre) => pre + 1);
+				setNum((pre) => pre + 1);
+			}}
+			key="sibling-----1"
+		>
 			eiwnfiwufnuiwenf93f--------{num}
-		</div>
+		</h1>
 	);
 };
 

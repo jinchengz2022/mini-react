@@ -10,21 +10,19 @@ import {
 	HostRoot,
 	HostText
 } from './workTags';
+import { Lane } from './fiberLanes';
 
 // 对应 tag 执行对应操作
-export const beginWork = (workInProgress: FiberNode) => {
-	if (__DEV__) {
-		console.log('beginWork流程', workInProgress.type);
-	}
+export const beginWork = (workInProgress: FiberNode, renderLane: Lane) => {
 	switch (workInProgress.tag) {
 		case HostRoot:
-			return updateHostRoot(workInProgress);
+			return updateHostRoot(workInProgress, renderLane);
 		case HostComponent:
 			return updateHostComponent(workInProgress);
 		case HostText:
 			return null;
 		case FunctionComponent:
-			return updateFunctionComponent(workInProgress);
+			return updateFunctionComponent(workInProgress, renderLane);
 		case Fragment:
 			return updateFragment(workInProgress);
 		default:
@@ -39,8 +37,8 @@ function updateFragment(workInProgress: FiberNode) {
 	return workInProgress.child;
 }
 
-function updateFunctionComponent(workInProgress: FiberNode) {
-	const nextChildren = renderWithHooks(workInProgress);
+function updateFunctionComponent(workInProgress: FiberNode, renderLane: Lane) {
+	const nextChildren = renderWithHooks(workInProgress, renderLane);
 	reconcileChildren(workInProgress, nextChildren);
 	return workInProgress.child;
 }
@@ -53,13 +51,14 @@ function updateHostComponent(workInProgress: FiberNode) {
 	return workInProgress.child;
 }
 
-function updateHostRoot(workInProgress: FiberNode) {
+function updateHostRoot(workInProgress: FiberNode, renderLane: Lane) {
 	const baseState = workInProgress.memorizedState;
 	const updateQueue = workInProgress.updateQueue as UpdateQueue<Element>;
 	workInProgress.memorizedState = processUpdateQueue(
 		baseState,
 		updateQueue,
-		workInProgress
+		workInProgress,
+		renderLane
 	);
 
 	const nextChildren = workInProgress.memorizedState;

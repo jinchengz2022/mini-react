@@ -1,9 +1,12 @@
 import { Dispatch } from 'react/src/currentDispatcher';
 import { Action } from 'shared/ReactTypes';
 import { FiberNode } from './fiber';
+import { Lane } from './fiberLanes';
 
 export interface Update<State> {
 	action: Action<State>;
+	lane: Lane;
+	next: Update<any> | null;
 }
 
 export interface UpdateQueue<State> {
@@ -14,12 +17,14 @@ export interface UpdateQueue<State> {
 }
 
 // 创建
-export const createUpdate = <State>(action: Action<State>) => {
+export const createUpdate = <State>(action: Action<State>, lane: Lane) => {
 	if (__DEV__) {
 		console.log('创建update：', action);
 	}
 	return {
-		action
+		action,
+		lane,
+		next: null
 	};
 };
 
@@ -30,6 +35,13 @@ export const enqueueUpdate = <Action>(
 ) => {
 	if (__DEV__) {
 		console.log('将update插入更新队列：', update);
+	}
+	const pending = updateQueue.shared.pending;
+	if (pending === null) {
+		update.next = update;
+	} else {
+		update.next = pending.next;
+		pending.next = update;
 	}
 	updateQueue.shared.pending = update;
 };
@@ -49,7 +61,8 @@ export const createUpdateQueue = <Action>() => {
 export const processUpdateQueue = <State>(
 	baseState: State,
 	updateQueue: UpdateQueue<State>,
-	fiber: FiberNode
+	fiber: FiberNode,
+	renderLane: Lane
 ): State => {
 	if (updateQueue !== null) {
 		const pending = updateQueue.shared.pending;
@@ -57,12 +70,23 @@ export const processUpdateQueue = <State>(
 		updateQueue.shared.pending = null;
 
 		if (pendingUpdate !== null) {
-			const action = pendingUpdate.action;
-			if (action instanceof Function) {
-				baseState = action(baseState);
-			} else {
-				baseState = action;
-			}
+			const first = pendingUpdate.next;
+			let pending = pendingUpdate.next as Update<any>;
+
+			do {
+				const updateLane = pending.lane;
+				if (updateLane === renderLane) {
+					const action = pendingUpdate.action;
+					if (action instanceof Function) {
+						baseState = action(baseState);
+					} else {
+						baseState = action;
+					}
+				} else {
+					console.error('updateLane !== renderLane');
+				}
+				pending = pending.next as Update<any>;
+			} while (pending !== first);
 		}
 	} else {
 		console.error(fiber, 'processUpdateQueue时 updateQueue不存在');

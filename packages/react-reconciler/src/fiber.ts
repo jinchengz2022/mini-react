@@ -7,6 +7,7 @@ import {
 	HostComponent,
 	WorkTag
 } from './workTags';
+import { Lane, Lanes, NoLane } from './fiberLanes';
 
 export class FiberNode {
 	pendingProps: Props;
@@ -72,11 +73,15 @@ export class FiberRootNode {
 	container: Container;
 	current: FiberNode;
 	finishedWork: FiberNode | null;
+	pendingLanes: Lanes;
+	finishedLane: Lane;
 	constructor(container: Container, hostRootFiber: FiberNode) {
 		this.container = container;
 		this.current = hostRootFiber;
 		hostRootFiber.stateNode = this;
 		this.finishedWork = null;
+		this.pendingLanes = NoLane;
+		this.finishedLane = NoLane;
 	}
 }
 
