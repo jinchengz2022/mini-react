@@ -101,7 +101,7 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 		returnFiber: FiberNode,
 		existingChildren: ExistingChildren,
 		index: number,
-		element: ReactElementType | string | number
+		element: ReactElementType | string | number | null
 	): FiberNode | null {
 		const keyToUse: string | number = getElementKeyToUse(element, index);
 		const before = existingChildren.get(keyToUse);
@@ -214,6 +214,12 @@ function ChildReconciler(shouldTrackEffects: boolean) {
 				after
 			) as FiberNode;
 
+			// 更新前为 <p>1</p>
+			// 更新后为 null、false、undefined
+			if (newFiber === null) {
+				continue;
+			}
+
 			newFiber.index = i;
 			newFiber.return = returnFiber;
 
@@ -324,6 +330,7 @@ function updateFragment(
 function getElementKeyToUse(element: any, index?: number): string | number {
 	if (
 		Array.isArray(element) ||
+		element === null ||
 		typeof element === 'string' ||
 		typeof element === 'number'
 	) {
