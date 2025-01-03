@@ -10,6 +10,9 @@ importers:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
         version: 6.0.2(rollup@4.28.1)
+      scheduler:
+        specifier: ^0.25.0
+        version: 0.25.0
     devDependencies:
       '@commitlint/cli':
         specifier: ^19.6.1
@@ -23,6 +26,9 @@ importers:
       '@rollup/plugin-commonjs':
         specifier: ^28.0.2
         version: 28.0.2(rollup@4.28.1)
+      '@types/scheduler':
+        specifier: ^0.23.0
+        version: 0.23.0
       '@typescript-eslint/parser':
         specifier: ^8.18.1
         version: 8.18.1(eslint@9.17.0(jiti@2.4.2))(typescript@5.7.2)
@@ -1339,6 +1345,12 @@ packages:
     resolution:
       {
         integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==
+      }
+
+  '@types/scheduler@0.23.0':
+    resolution:
+      {
+        integrity: sha512-YIoDCTH3Af6XM5VuwGG/QL/CJqga1Zm3NkU3HZ4ZHK2fRMPYP1VczsTUqtsf43PH/iJNVlPHAo2oWX7BSdB2Hw==
       }
 
   '@types/stack-utils@2.0.3':
@@ -3645,6 +3657,12 @@ packages:
       }
     engines: { node: '>=v12.22.7' }
 
+  scheduler@0.25.0:
+    resolution:
+      {
+        integrity: sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA==
+      }
+
   semver@5.7.2:
     resolution:
       {
@@ -5038,6 +5056,8 @@ snapshots:
       undici-types: 6.20.0
 
   '@types/normalize-package-data@2.4.4': {}
+
+  '@types/scheduler@0.23.0': {}
 
   '@types/stack-utils@2.0.3': {}
 
@@ -6604,6 +6624,8 @@ snapshots:
   saxes@6.0.0:
     dependencies:
       xmlchars: 2.2.0
+
+  scheduler@0.25.0: {}
 
   semver@5.7.2: {}
 

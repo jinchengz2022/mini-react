@@ -1,8 +1,23 @@
+import {
+	unstable_scheduleCallback as scheduleCallback,
+	unstable_NormalPriority as NormalPriority
+} from 'scheduler';
+
 import { beginWork } from './beginWork';
-import { commitMutationEffects } from './commitWork';
+import {
+	commitHookEffectListCreate,
+	commitHookEffectListDestroy,
+	commitHookEffectListUnmount,
+	commitMutationEffects
+} from './commitWork';
 import { completeWork } from './completeWork';
-import { createWorkInProgress, FiberNode, FiberRootNode } from './fiber';
-import { MutationMask, NoFlags } from './fiberFlags';
+import {
+	createWorkInProgress,
+	FiberNode,
+	FiberRootNode,
+	PendingPassiveEffects
+} from './fiber';
+import { MutationMask, NoFlags, PassiveMask } from './fiberFlags';
 import {
 	getHighestPriorityLane,
 	Lane,
@@ -14,9 +29,11 @@ import {
 import { scheduleMicroTask } from './hostConfig';
 import { flushSyncCallbacks, scheduleSyncCallback } from './syncTaskQueue';
 import { HostRoot } from './workTags';
+import { HookHasEffect, Passive } from './hookEffectTags';
 
 let workInProgress: FiberNode | null = null;
 let wipRootRenderLane: Lane = NoLane;
+let rootDoesHasPassiveEffects: Boolean = false;
 
 export function scheduleUpdateOnFiber(fiber: FiberNode, lane: Lane) {
 	if (__DEV__) {
@@ -106,6 +123,22 @@ function performSyncWorkOnRoot(root: FiberRootNode, lane: Lane) {
 	commitRoot(root, lane);
 }
 
+function flushPassiveEffects(pendingPassiveEffects: PendingPassiveEffects) {
+	pendingPassiveEffects.unmount.forEach((effect) => {
+		commitHookEffectListUnmount(Passive, effect);
+	});
+	pendingPassiveEffects.unmount = [];
+
+	pendingPassiveEffects.update.forEach((effect) => {
+		commitHookEffectListDestroy(Passive | HookHasEffect, effect);
+	});
+	pendingPassiveEffects.update.forEach((effect) => {
+		commitHookEffectListCreate(Passive | HookHasEffect, effect);
+	});
+	pendingPassiveEffects.update = [];
+	flushSyncCallbacks();
+}
+
 // 开始插入/改变真实 dom
 function commitRoot(root: FiberRootNode, lane: Lane) {
 	const finishedWork = root.finishedWork;
@@ -126,6 +159,19 @@ function commitRoot(root: FiberRootNode, lane: Lane) {
 	root.finishedWork = null;
 	markRootFinished(root, lane);
 
+	if (
+		(finishedWork.flags & PassiveMask) !== NoFlags ||
+		(finishedWork.subtreeFlags & PassiveMask) !== NoFlags
+	) {
+		if (!rootDoesHasPassiveEffects) {
+			rootDoesHasPassiveEffects = true;
+			scheduleCallback(NormalPriority, () => {
+				flushPassiveEffects(root.pendingPassiveEffects);
+				return;
+			});
+		}
+	}
+
 	const subtreeHasEffect =
 		(finishedWork.subtreeFlags & MutationMask) !== NoFlags;
 	const rootHasEffect = (finishedWork.flags & MutationMask) !== NoFlags;
@@ -136,7 +182,7 @@ function commitRoot(root: FiberRootNode, lane: Lane) {
 		// 阶段1/3:beforeMutation
 
 		// 阶段2/3:Mutation
-		commitMutationEffects(finishedWork);
+		commitMutationEffects(finishedWork, root);
 
 		// Fiber Tree切换
 		root.current = finishedWork;
@@ -146,6 +192,9 @@ function commitRoot(root: FiberRootNode, lane: Lane) {
 		// Fiber Tree切换
 		root.current = finishedWork;
 	}
+
+	rootDoesHasPassiveEffects = false;
+	ensureRootIsScheduled(root);
 }
 
 function prepareFreshStack(root: FiberRootNode, lane: Lane) {

@@ -15,6 +15,7 @@
 		"@commitlint/config-conventional": "^19.6.0",
 		"@rollup/plugin-alias": "^5.1.1",
 		"@rollup/plugin-commonjs": "^28.0.2",
+		"@types/scheduler": "^0.23.0",
 		"@typescript-eslint/parser": "^8.18.1",
 		"@vitejs/plugin-react": "^4.3.4",
 		"commitlint": "^19.6.1",
@@ -37,6 +38,7 @@
 		"vite": "^6.0.3"
 	},
 	"dependencies": {
-		"@rollup/plugin-replace": "^6.0.2"
+		"@rollup/plugin-replace": "^6.0.2",
+		"scheduler": "^0.25.0"
 	}
 }

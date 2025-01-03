@@ -11,17 +11,34 @@ import {
 } from './updateQueue';
 import { scheduleUpdateOnFiber } from './workLoop';
 import { Lane, NoLane, requestUpdateLane } from './fiberLanes';
+import { Flags, PassiveEffect } from './fiberFlags';
+import { HookHasEffect, Passive } from './hookEffectTags';
 
-let workInProgressHook: Hook | null = null;
-let currentHook: Hook | null = null;
-let currentlyRenderingFiber: FiberNode | null = null;
-let renderLane: Lane = NoLane;
+type EffectCallback = () => void;
+type EffectDeps = any[] | null;
+export interface Effect {
+	tag: Flags;
+	create: EffectCallback | void;
+	destroy: EffectCallback | void;
+	deps: EffectDeps;
+	next: Effect | null;
+}
+
+export interface FCUpdateQueue<State> extends UpdateQueue<State> {
+	lastEffect: Effect | null;
+}
+
 interface Hook {
 	memorizedState: any;
 	// 对于state，保存update相关数据
 	updateQueue: unknown;
 	next: Hook | null;
 }
+
+let workInProgressHook: Hook | null = null;
+let currentHook: Hook | null = null;
+let currentlyRenderingFiber: FiberNode | null = null;
+let renderLane: Lane = NoLane;
 
 const { currentDispatcher } = sharedInternals;
 
@@ -53,11 +70,8 @@ export const renderWithHooks = (workInProgress: FiberNode, lane: Lane) => {
 };
 
 const HooksDispatcherOnMount: Dispatcher = {
-	useState: mountState
-};
-
-const HooksDispatcherOnUpdate: Dispatcher = {
-	useState: updateState
+	useState: mountState,
+	useEffect: mountEffect
 };
 
 function mountState<State>(
@@ -98,6 +112,109 @@ function updateState<State>(): [State, Dispatch<State>] {
 		renderLane
 	);
 	return [hook.memorizedState, queue.dispatch as Dispatch<State>];
+}
+
+const HooksDispatcherOnUpdate: Dispatcher = {
+	useState: updateState,
+	useEffect: updateEffect
+};
+
+function createFCUpdateQueue<State>() {
+	const updateQueue = createUpdateQueue<State>() as FCUpdateQueue<State>;
+	updateQueue.lastEffect = null;
+
+	return updateQueue;
+}
+
+function pushEffect(
+	hookFlags: Flags,
+	create: EffectCallback | void,
+	destroy: EffectCallback | void,
+	deps: EffectDeps
+): Effect {
+	const effect: Effect = {
+		tag: hookFlags,
+		create,
+		destroy,
+		deps,
+		next: null
+	};
+	const fiber = currentlyRenderingFiber as FiberNode;
+	const updateQueue = fiber.updateQueue as FCUpdateQueue<any>;
+
+	if (updateQueue === null) {
+		const updateQueue = createFCUpdateQueue();
+		fiber.updateQueue = updateQueue;
+		effect.next = effect;
+		updateQueue.lastEffect = effect;
+	} else {
+		const lastEffect = updateQueue.lastEffect;
+		if (lastEffect === null) {
+			effect.next = effect;
+			updateQueue.lastEffect = effect;
+		} else {
+			const firstEffect = lastEffect.next;
+			lastEffect.next = effect;
+			effect.next = firstEffect;
+			updateQueue.lastEffect = effect;
+		}
+	}
+
+	return effect;
+}
+
+function mountEffect(create: EffectCallback | void, deps: EffectDeps | void) {
+	const hook = mountWorkInProgressHook();
+	const nextDeps = deps === undefined ? null : deps;
+	(currentlyRenderingFiber as FiberNode).flags |= PassiveEffect;
+
+	hook.memorizedState = pushEffect(
+		Passive | HookHasEffect,
+		create,
+		undefined,
+		nextDeps
+	);
+}
+
+function updateEffect(create: EffectCallback | void, deps: EffectDeps | void) {
+	const hook = updateWorkInProgressHook();
+	const nextDeps = deps === undefined ? null : deps;
+	let destroy: EffectCallback | void;
+
+	if (currentHook !== null) {
+		const prevEffect = currentHook.memorizedState as Effect;
+		destroy = prevEffect.destroy;
+
+		if (nextDeps !== null) {
+			const prevDeps = prevEffect.deps;
+			if (areHookInputsEqual(nextDeps, prevDeps)) {
+				hook.memorizedState = pushEffect(Passive, create, destroy, nextDeps);
+				return;
+			}
+		}
+
+		(currentlyRenderingFiber as FiberNode).flags |= PassiveEffect;
+		hook.memorizedState = pushEffect(
+			Passive | HookHasEffect,
+			create,
+			destroy,
+			nextDeps
+		);
+	}
+}
+
+function areHookInputsEqual(nextDeps: EffectDeps, prevDeps: EffectDeps) {
+	if (nextDeps === null || prevDeps === null) {
+		return false;
+	}
+
+	for (let i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
+		if (Object.is(prevDeps[i], nextDeps[i])) {
+			continue;
+		}
+		return false;
+	}
+	return true;
 }
 
 function dispatchSetState<State>(
