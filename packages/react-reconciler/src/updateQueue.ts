@@ -1,7 +1,7 @@
 import { Dispatch } from 'react/src/currentDispatcher';
 import { Action } from 'shared/ReactTypes';
 import { FiberNode } from './fiber';
-import { Lane } from './fiberLanes';
+import { Lane, isSubsetOfLanes, NoLane } from './fiberLanes';
 
 export interface Update<State> {
 	action: Action<State>;
@@ -60,36 +60,68 @@ export const createUpdateQueue = <Action>() => {
 // 消费
 export const processUpdateQueue = <State>(
 	baseState: State,
-	updateQueue: UpdateQueue<State>,
-	fiber: FiberNode,
+	updateQueue: Update<State>,
+	// fiber: FiberNode,
 	renderLane: Lane
-): State => {
+): {
+	memorizedState: State;
+	baseState: State;
+	baseQueue: Update<State> | null;
+} => {
+	const result: ReturnType<typeof processUpdateQueue<State>> = {
+		memorizedState: baseState,
+		baseState,
+		baseQueue: null
+	};
+
 	if (updateQueue !== null) {
-		const pending = updateQueue.shared.pending;
-		const pendingUpdate = pending;
-		updateQueue.shared.pending = null;
+		const first = updateQueue.next;
+		let pending = updateQueue.next as Update<any>;
 
-		if (pendingUpdate !== null) {
-			const first = pendingUpdate.next;
-			let pending = pendingUpdate.next as Update<any>;
+		let newBaseState = baseState;
+		let newBaseQueueFirst: Update<State> | null = null;
+		let newBaseQueueLast: Update<State> | null = null;
+		let newState = baseState;
 
-			do {
-				const updateLane = pending.lane;
-				if (updateLane === renderLane) {
-					const action = pendingUpdate.action;
-					if (action instanceof Function) {
-						baseState = action(baseState);
-					} else {
-						baseState = action;
-					}
+		do {
+			const updateLane = pending.lane;
+			if (!isSubsetOfLanes(renderLane, updateLane)) {
+				const clone = createUpdate(pending.action, pending.lane);
+				if (newBaseQueueFirst === null) {
+					newBaseQueueFirst = clone;
+					newBaseQueueLast = clone;
+					newBaseState = newState;
 				} else {
-					console.error('updateLane !== renderLane');
+					(newBaseQueueLast as Update<State>).next = clone;
+					newBaseQueueLast = clone;
 				}
-				pending = pending.next as Update<any>;
-			} while (pending !== first);
+			} else {
+				if (newBaseQueueLast !== null) {
+					const clone = createUpdate(pending.action, NoLane);
+					newBaseQueueLast.next = clone;
+					newBaseQueueLast = clone;
+				}
+
+				const action = pending.action;
+				if (action instanceof Function) {
+					newState = action(baseState);
+				} else {
+					newState = action;
+				}
+			}
+			pending = pending.next as Update<any>;
+		} while (pending !== first);
+
+		if (newBaseQueueLast === null) {
+			newBaseState = newState;
+		} else {
+			newBaseQueueLast.next = newBaseQueueFirst;
 		}
+		result.memorizedState = newState;
+		result.baseQueue = newBaseQueueLast;
+		result.baseState = newBaseState;
 	} else {
-		console.error(fiber, 'processUpdateQueue时 updateQueue不存在');
+		console.error('processUpdateQueue时 updateQueue不存在');
 	}
-	return baseState;
+	return result;
 };
