@@ -60,8 +60,7 @@ export const createUpdateQueue = <Action>() => {
 // 消费
 export const processUpdateQueue = <State>(
 	baseState: State,
-	updateQueue: Update<State>,
-	// fiber: FiberNode,
+	updateQueue: Update<State> | null,
 	renderLane: Lane
 ): {
 	memorizedState: State;

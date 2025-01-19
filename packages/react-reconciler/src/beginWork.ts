@@ -53,13 +53,11 @@ function updateHostComponent(workInProgress: FiberNode) {
 
 function updateHostRoot(workInProgress: FiberNode, renderLane: Lane) {
 	const baseState = workInProgress.memorizedState;
-	const updateQueue = workInProgress.updateQueue as Update<Element>;
-	workInProgress.memorizedState = processUpdateQueue(
-		baseState,
-		updateQueue,
-		// workInProgress,
-		renderLane
-	);
+	const updateQueue = workInProgress.updateQueue as UpdateQueue<Element>;
+	const pending = updateQueue.shared.pending;
+	updateQueue.shared.pending = null;
+	const { memorizedState } = processUpdateQueue(baseState, pending, renderLane);
+	workInProgress.memorizedState = memorizedState;
 
 	const nextChildren = workInProgress.memorizedState;
 	reconcileChildren(workInProgress, nextChildren);
