@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"build:dev": "rm -rf dist && rollup --bundleConfigAsCjs --config scripts/rollup/dev.config.js ",
-		"demo": "vite serve demo/test --config scripts/vite/vite.config.js --force"
+		"demo": "vite serve demo/transition --config scripts/vite/vite.config.js --force"
 	},
 	"keywords": [],
 	"author": "",

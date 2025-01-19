@@ -1,4 +1,5 @@
 import { Dispatcher, Dispatch } from 'react/src/currentDispatcher';
+import currentBatchConfig from 'react/src/currentBatchConfig';
 import { Action } from 'shared/ReactTypes';
 import sharedInternals from 'shared/internals';
 import { FiberNode } from './fiber';
@@ -74,8 +75,39 @@ export const renderWithHooks = (workInProgress: FiberNode, lane: Lane) => {
 
 const HooksDispatcherOnMount: Dispatcher = {
 	useState: mountState,
-	useEffect: mountEffect
+	useEffect: mountEffect,
+	useTransition: mountTransition
 };
+
+function mountTransition(): [boolean, (callback: () => void) => void] {
+	const [isPending, setPending] = mountState(false);
+	const hook = mountWorkInProgressHook();
+	const start = startTransition.bind(null, setPending);
+
+	hook.memorizedState = start;
+
+	return [isPending, start];
+}
+
+function updateTransition(): [boolean, (callback: () => void) => void] {
+	const [isPending] = updateState();
+	const hook = updateWorkInProgressHook();
+	const start = hook.memorizedState;
+
+	return [isPending as boolean, start];
+}
+
+function startTransition(setPending: Dispatch<boolean>, callback: () => void) {
+	setPending(true);
+
+	const prevTransition = currentBatchConfig.transition;
+	currentBatchConfig.transition = 1;
+
+	callback();
+	setPending(false);
+
+	currentBatchConfig.transition = prevTransition;
+}
 
 function mountState<State>(
 	initialState: (() => State) | State
@@ -88,6 +120,7 @@ function mountState<State>(
 		memorizedState = initialState;
 	}
 	hook.memorizedState = memorizedState;
+	hook.baseState = memorizedState;
 	const queue = createUpdateQueue<State>();
 	hook.updateQueue = queue;
 
@@ -137,7 +170,8 @@ function updateState<State>(): [State, Dispatch<State>] {
 
 const HooksDispatcherOnUpdate: Dispatcher = {
 	useState: updateState,
-	useEffect: updateEffect
+	useEffect: updateEffect,
+	useTransition: updateTransition
 };
 
 function createFCUpdateQueue<State>() {

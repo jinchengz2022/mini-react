@@ -2,6 +2,7 @@ import currentDispatcher, {
 	Dispatcher,
 	resolveDispatcher
 } from './src/currentDispatcher';
+import currentBatchConfig from './src/currentBatchConfig';
 
 export const useState = <State>(initialState: (() => State) | State) => {
 	const dispatcher = resolveDispatcher() as Dispatcher;
@@ -13,8 +14,14 @@ export const useEffect: Dispatcher['useEffect'] = (create, deps) => {
 	return dispatcher.useEffect(create, deps);
 };
 
+export const useTransition: Dispatcher['useTransition'] = () => {
+	const dispatcher = resolveDispatcher() as Dispatcher;
+	return dispatcher.useTransition();
+};
+
 export const __SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = {
-	currentDispatcher
+	currentDispatcher,
+	currentBatchConfig
 };
 
 import { jsxDEV } from './src/jsx';
